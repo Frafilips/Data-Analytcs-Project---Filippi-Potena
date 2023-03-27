@@ -4,8 +4,10 @@
 import numpy as np
 import pandas as pd
 import data_acquisition as data_acquisition
-from sklearn.preprocessing import LabelEncoder
-
+from sklearn.preprocessing import LabelEncoder, Normalizer
+from sklearn.model_selection import train_test_split
+from sklearn.decomposition import PCA
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 #Data Cleaning & Pre-processing
 #Eliminiamo eventuali righe con valori null e duplicate
 movies = data_acquisition.movies
@@ -84,16 +86,60 @@ print("Numero di valori maggiori di 1 delle colonne : ", check_max)
 # in cui le votazioni sono date da 0 a 5 in step di 0.5
 
 bins = [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5]
+binned_ratings = pd.cut(final_dataframe['rating'], bins, labels=bins[1:])
 
-final_dataframe['binned_ratings'] = pd.cut(final_dataframe['rating'], bins, labels=bins[1:])
-print(final_dataframe)
-
-"""binned_ratings = pd.cut(
-        final_dataframe['rating'], bins=bins, labels=bins[1:])
-print(binned_ratings) 
+#Encoding dei rating classificati nei bin necessario per oversampling
 label_encoder = LabelEncoder()
 label_encoder.fit(binned_ratings)
 binned_ratings = label_encoder.transform(binned_ratings) 
-print(binned_ratings) 
-print(label_encoder)"""
 
+#Sostituizione nel dataframe della colonna rating con i valori binnati e trasformati
+final_dataframe['rating'] = binned_ratings
+
+#Drop della classe con 1 solo valore
+#final_dataframe.drop(final_dataframe.index[final_dataframe['rating'] == '0'], inplace=True)
+
+#print(final_dataframe.groupby("rating").count())
+
+#Funzioni di scaling possono essere calcolate sia prima sia dopo aver effettuato il resample perchè vanno calcolate per ogni sample(riga)
+#scaling data
+scaler = Normalizer(copy=False, norm='l2')
+# scaler = StandardScaler(copy=False)
+# scaler = MinMaxScaler(copy=False)
+
+columnsSaved = final_dataframe.columns
+final_dataframe = scaler.fit_transform(final_dataframe.to_numpy())
+final_dataframe[:, -1] = binned_ratings
+
+final_dataframe = pd.DataFrame(final_dataframe, columns=columnsSaved)
+
+#Costruzione dei set per il modello
+#splitto il dataset in x e y 
+df_x = final_dataframe.drop('rating',axis=1)
+df_y = final_dataframe['rating']
+
+x_train, x_test, y_train, y_test = train_test_split(
+    df_x, df_y, test_size = 0.2
+)
+
+x_train, x_val, y_train, y_val = train_test_split (
+    x_train, y_train, test_size=0.25
+)
+
+
+#Eseguo riduzione delle dimensioni provando sia con il metodo PCA sia con il metodo LDA
+#PCA
+
+print(str(x_train.shape))
+pca = PCA()
+pca.fit(x_train)
+print("PCA mean : ", pca.mean_)
+print("PCA explained variance: ", pca.explained_variance_)
+print("PCA components : ", pca.components_)
+
+x_train = pca.transform(x_train)
+x_val = pca.transform(x_val)
+x_test = pca.transform(x_test)
+print(str(x_train.shape))
+
+#LDA
