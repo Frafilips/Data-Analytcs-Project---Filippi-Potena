@@ -4,10 +4,13 @@
 import numpy as np
 import pandas as pd
 import data_acquisition as data_acquisition
+import matplotlib.pyplot as plt
+from imblearn.over_sampling import SMOTE
 from sklearn.preprocessing import LabelEncoder, Normalizer
 from sklearn.model_selection import train_test_split
 from sklearn.decomposition import PCA
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+
 #Data Cleaning & Pre-processing
 #Eliminiamo eventuali righe con valori null e duplicate
 movies = data_acquisition.movies
@@ -96,9 +99,9 @@ binned_ratings = label_encoder.transform(binned_ratings)
 #Sostituizione nel dataframe della colonna rating con i valori binnati e trasformati
 final_dataframe['rating'] = binned_ratings
 
-#Drop della classe con 1 solo valore
-#final_dataframe.drop(final_dataframe.index[final_dataframe['rating'] == '0'], inplace=True)
-
+#Drop della classe con 1 solo valore per problemi con utilizzo di SMOTE
+final_dataframe = final_dataframe[final_dataframe['rating'] != 0]
+binned_ratings = binned_ratings[binned_ratings != 0]
 #print(final_dataframe.groupby("rating").count())
 
 #Funzioni di scaling possono essere calcolate sia prima sia dopo aver effettuato il resample perchè vanno calcolate per ogni sample(riga)
@@ -122,6 +125,7 @@ x_train, x_test, y_train, y_test = train_test_split(
     df_x, df_y, test_size = 0.2
 )
 
+
 x_train, x_val, y_train, y_val = train_test_split (
     x_train, y_train, test_size=0.25
 )
@@ -129,17 +133,46 @@ x_train, x_val, y_train, y_val = train_test_split (
 
 #Eseguo riduzione delle dimensioni provando sia con il metodo PCA sia con il metodo LDA
 #PCA
+#0-8 metodo del gomito
+#pca = PCA(0.8)
+#pca.fit(x_train)
 
-print(str(x_train.shape))
-pca = PCA()
-pca.fit(x_train)
-print("PCA mean : ", pca.mean_)
-print("PCA explained variance: ", pca.explained_variance_)
-print("PCA components : ", pca.components_)
+"""
+plt.plot(np.cumsum(pca.explained_variance_ratio_))
+plt.xlabel('Numero di componenti principali')
+plt.ylabel('Varianza spiegata cumulativa')
+
+# traccia il grafico del gomito per selezionare il numero di componenti principali
+plt.plot(range(1, x_train.shape[1]+1), np.cumsum(pca.explained_variance_ratio_), '-o')
+plt.xlabel('Numero di componenti principali')
+plt.ylabel('Varianza spiegata cumulativa')
+plt.show()
 
 x_train = pca.transform(x_train)
 x_val = pca.transform(x_val)
 x_test = pca.transform(x_test)
-print(str(x_train.shape))
+"""
 
 #LDA
+lda = LinearDiscriminantAnalysis()
+lda.fit(x_train, y_train)
+
+x_train = lda.transform(x_train)
+x_val = lda.transform(x_val)
+x_test = lda.transform(x_test)
+
+plt.hist(label_encoder.inverse_transform(y_train.astype(int)), bins="auto")
+plt.xlabel("Rating Medio")
+plt.ylabel("Occorrenze")
+plt.show()
+
+#Bilanciamento delle classi tramite oversampling
+oversampler = SMOTE(k_neighbors = 6)
+x_train, y_train = oversampler.fit_resample(x_train, y_train)
+
+plt.hist(label_encoder.inverse_transform(y_train.astype(int)), bins="auto")
+plt.xlabel("Rating Medio")
+plt.ylabel("Occorrenze")
+plt.show()
+
+
