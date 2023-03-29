@@ -133,16 +133,18 @@ x_train, x_val, y_train, y_val = train_test_split (
 )
 
 
+
 #Eseguo riduzione delle dimensioni provando sia con il metodo PCA sia con il metodo LDA
 #PCA
-#0-8 metodo del gomito
-#pca = PCA(0.8)
-#pca.fit(x_train)
-
 """
+pca = PCA(0.8)
+pca.fit(x_train)
+
+
 plt.plot(np.cumsum(pca.explained_variance_ratio_))
 plt.xlabel('Numero di componenti principali')
 plt.ylabel('Varianza spiegata cumulativa')
+plt.show()
 
 # traccia il grafico del gomito per selezionare il numero di componenti principali
 plt.plot(range(1, x_train.shape[1]+1), np.cumsum(pca.explained_variance_ratio_), '-o')
@@ -153,7 +155,12 @@ plt.show()
 x_train = pca.transform(x_train)
 x_val = pca.transform(x_val)
 x_test = pca.transform(x_test)
-"""
+
+plt.scatter(x_train[:, 0], x_train[:, 1], c=y_train)
+plt.show()
+plt.scatter(x_test[:, 0], x_test[:, 1], c=y_test)
+plt.show()"""
+
 
 #LDA
 lda = LinearDiscriminantAnalysis()
@@ -163,6 +170,12 @@ x_train = lda.transform(x_train)
 x_val = lda.transform(x_val)
 x_test = lda.transform(x_test)
 
+plt.scatter(x_train[:, 0], x_train[:, 1], c=y_train)
+plt.show()
+plt.scatter(x_test[:, 0], x_test[:, 1], c=y_test)
+plt.show()
+
+#Bilanciamento delle classi prima di applicare SMOTE
 plt.hist(label_encoder.inverse_transform(y_train.astype(int)), bins="auto")
 plt.xlabel("Rating Medio")
 plt.ylabel("Occorrenze")
@@ -176,5 +189,3 @@ plt.hist(label_encoder.inverse_transform(y_train.astype(int)), bins="auto")
 plt.xlabel("Rating Medio")
 plt.ylabel("Occorrenze")
 #plt.show()
-
-
