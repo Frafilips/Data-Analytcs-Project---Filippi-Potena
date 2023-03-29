@@ -39,6 +39,7 @@ genome_tags = genome_tags.dropna()"""
 #one hot encoding sulla colonna dei genres per trasformare le stringhe in numeri in quanto feature qualitativa
 #in modo da effettuare più facilmente le analisi
 movies = data_acquisition.movies
+
 genres = movies["genres"].str.get_dummies()
 movies = movies.merge(genres, on="movieId")
 #vecchia colonna dei generi è stata trasformata in colonne binary, quindi non ci serve più
@@ -54,6 +55,7 @@ genome_scores = genome_scores.pivot(
 
 #calcoliamo la media dei ratings 
 mean_ratings = ratings.groupby("movieId")["rating"].mean()
+
 #print("MEAN -> ", len(mean_ratings))
 #print("GENOMES -> ", len(genome_scores))
 #print("MOVIES -> ", len(movies))
@@ -62,25 +64,26 @@ mean_ratings = ratings.groupby("movieId")["rating"].mean()
 #le informazioni sui genomes corrispondono solo a 13816 movies sui 62423, quando viene effettuata l'operazione di merge sul movieId vengono scartete le informazioni dei quasi 50000 mancanti
 final_dataframe = movies.merge(genome_scores, on="movieId")
 final_dataframe = final_dataframe.merge(mean_ratings, on="movieId")
-
+#cancellazione della colonna (no genres listed)
+final_dataframe = final_dataframe.drop('(no genres listed)', axis=1)
 
 #verifico integrità dei dati
 #controllo se ci sono NA
 number_of_na = final_dataframe.isna().sum().sum()
-print("Na trovati nel dataset: ",number_of_na)
+#print("Na trovati nel dataset: ",number_of_na)
 
 #controllo che non ci siano rating < 0 e > 5 
 df_description = final_dataframe.describe().loc[["min","max"],:]
-print("Rating minimo: ", df_description.loc['min']['rating'])
-print("Rating massimo: ", df_description.loc['max']['rating'])
+#print("Rating minimo: ", df_description.loc['min']['rating'])
+#print("Rating massimo: ", df_description.loc['max']['rating'])
 
 #ciclo che scorre tutte le colonne tranne rating 
 #controllo che non ci siano valori < 0 e > 1 
 check_min = (df_description.loc[['min'], df_description.columns != "rating"] < 0).sum().sum()
-check_max = (df_description.loc[['min'], df_description.columns != "rating"] > 1).sum().sum()
+check_max = (df_description.loc[['max'], df_description.columns != "rating"] > 1).sum().sum()
 
-print("Numero di valori minori di 0 delle colonne: ", check_min)
-print("Numero di valori maggiori di 1 delle colonne : ", check_max)
+#print("Numero di valori minori di 0 delle colonne: ", check_min)
+#print("Numero di valori maggiori di 1 delle colonne : ", check_max)
 
 
 #TODO colonna no genres listed da pensare di eliminare)
@@ -94,8 +97,7 @@ binned_ratings = pd.cut(final_dataframe['rating'], bins, labels=bins[1:])
 #Encoding dei rating classificati nei bin necessario per oversampling
 label_encoder = LabelEncoder()
 label_encoder.fit(binned_ratings)
-binned_ratings = label_encoder.transform(binned_ratings) 
-
+binned_ratings = label_encoder.transform(binned_ratings)
 #Sostituizione nel dataframe della colonna rating con i valori binnati e trasformati
 final_dataframe['rating'] = binned_ratings
 
@@ -164,7 +166,7 @@ x_test = lda.transform(x_test)
 plt.hist(label_encoder.inverse_transform(y_train.astype(int)), bins="auto")
 plt.xlabel("Rating Medio")
 plt.ylabel("Occorrenze")
-plt.show()
+#plt.show()
 
 #Bilanciamento delle classi tramite oversampling
 oversampler = SMOTE(k_neighbors = 6)
@@ -173,6 +175,6 @@ x_train, y_train = oversampler.fit_resample(x_train, y_train)
 plt.hist(label_encoder.inverse_transform(y_train.astype(int)), bins="auto")
 plt.xlabel("Rating Medio")
 plt.ylabel("Occorrenze")
-plt.show()
+#plt.show()
 
 
