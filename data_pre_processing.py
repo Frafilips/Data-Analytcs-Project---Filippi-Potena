@@ -124,12 +124,12 @@ df_x = final_dataframe.drop('rating',axis=1)
 df_y = final_dataframe['rating']
 
 x_train, x_test, y_train, y_test = train_test_split(
-    df_x, df_y, test_size = 0.2
+    df_x, df_y, test_size = 0.2, random_state=42
 )
 
 
 x_train, x_val, y_train, y_val = train_test_split (
-    x_train, y_train, test_size=0.25
+    x_train, y_train, test_size=0.25, random_state=42
 )
 
 
@@ -171,9 +171,9 @@ x_val = lda.transform(x_val)
 x_test = lda.transform(x_test)
 
 plt.scatter(x_train[:, 0], x_train[:, 1], c=y_train)
-plt.show()
+#plt.show()
 plt.scatter(x_test[:, 0], x_test[:, 1], c=y_test)
-plt.show()
+#plt.show()
 
 #Bilanciamento delle classi prima di applicare SMOTE
 plt.hist(label_encoder.inverse_transform(y_train.astype(int)), bins="auto")
