@@ -1,5 +1,6 @@
 import data_pre_processing 
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
@@ -7,6 +8,9 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import GridSearchCV
 from sklearn.svm import SVC
 from sklearn.metrics import accuracy_score,confusion_matrix,mean_squared_error,r2_score
+import torch
+import torch.nn as nn
+from torch.utils.data import Dataset, DataLoader
 
 df_x=data_pre_processing.df_x
 df_y=data_pre_processing.df_y
@@ -122,10 +126,11 @@ def knn():#Calcolo con classifier KNN
     print("accuracy score: ",accuracy_score(y_test,prediction))
     print(conf_matrix)
 
-#Calcolo con classifier MLP
+
 
 if __name__ == "__main__":
     #naybeBayes()
     knn()
     #decisionTree()
     #svc()
+       
