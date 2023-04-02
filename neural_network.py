@@ -7,10 +7,12 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import GridSearchCV
 from sklearn.svm import SVC
-from sklearn.metrics import accuracy_score,confusion_matrix,mean_squared_error,r2_score
-
+from sklearn.metrics import accuracy_score,confusion_matrix,mean_squared_error,r2_score,classification_report
+import warnings
+warnings.filterwarnings('always')
 import torch
 from torch.utils.data import Dataset, DataLoader, Subset
+import itertools
 
 df_x=data_pre_processing.df_x
 df_y=data_pre_processing.df_y
@@ -51,18 +53,21 @@ class MovieLens(Dataset):
 class Feedforward(torch.nn.Module):
     def __init__(self, input_size, hidden_size, num_classes):
         super(Feedforward, self).__init__()
-        self.input_size = input_size
-        self.hidden_size = hidden_size
-        self.num_classes = num_classes
-        self.fc1 = torch.nn.Linear(self.input_size, self.hidden_size)
-        self.relu = torch.nn.ReLU()
-        self.fc2 = torch.nn.Linear(self.hidden_size, self.num_classes)
+        dropout = 0.2
+        self.model = torch.nn.Sequential(
+            #torch.nn.Dropout(dropout),
+            torch.nn.Linear(input_size, hidden_size),
+            torch.nn.ReLU(),
+            torch.nn.BatchNorm1d(hidden_size),
+            #torch.nn.Dropout(dropout),
+            torch.nn.Linear(hidden_size, hidden_size),
+            torch.nn.ReLU(),
+            torch.nn.BatchNorm1d(hidden_size),
+            torch.nn.Linear(hidden_size, num_classes),
+        )
 
     def forward(self, x):
-        hidden = self.fc1(x)
-        relu = self.relu(hidden)
-        output = self.fc2(relu)
-        return output
+        return self.model(x)
 
 def train_model(model, criterion, optimizer, epochs, data_loader):
     model.train()
@@ -78,7 +83,7 @@ def train_model(model, criterion, optimizer, epochs, data_loader):
             loss = criterion(y_pred.squeeze(), targets)
             
             loss_values.append(loss.item())
-            print('Epoch {} train loss: {}'.format(epoch, loss.item()))
+            #print('Epoch {} train loss: {}'.format(epoch, loss.item()))
 
             # Backward pass
             loss.backward()
@@ -95,35 +100,45 @@ def test_model(model, data_loader):
         y_test.append(targets)
     y_pred = torch.stack(y_pred).squeeze()
     y_test = torch.stack(y_test).squeeze()
-    y_pred = y_pred.argmax(dim=1, keepdim=True)
-    score = torch.sum((y_pred.squeeze() == y_test).float()) / y_test.shape[0]
-    print('Test score', score.numpy())
-
+    y_pred = y_pred.argmax(dim=1, keepdim=True).squeeze()
+    """score = torch.sum((y_pred.squeeze() == y_test).float()) / y_test.shape[0]
+    print('Test score', score.numpy())"""
+    print(classification_report(y_test, y_pred,zero_division=0))
+    accuracy=accuracy_score(y_test, y_pred)
+    print(accuracy)
 
 if __name__ == "__main__":
     
-    hidden_size = 32
-    num_epochs = 10
-    learning_rate = 0.001
-    batch = 32
+    """hidden_sizes = [8, 16, 32]
+    nums_epochs = [10, 50, 100, 500]
+    batch_sizes = [8, 16, 32]
+    learning_rate = [0.01,0.001]"""
+    hidden_sizes = [32]
+    nums_epochs = [1]
+    batch_sizes = [16]
+    learning_rate = [0.001]
+
+    hyperparameters = itertools.product(hidden_sizes, nums_epochs, batch_sizes,learning_rate)
 
     datasetTrain=MovieLens(x_train, y_train)
     datasetTest=MovieLens(x_test, y_test)
     datasetVal=MovieLens(x_val, y_val)
 
-    train_loader=DataLoader(datasetTrain, batch_size=batch, shuffle=True,drop_last=True)
     val_loader=DataLoader(datasetVal, batch_size=1, shuffle=True)
     
-    
+    for hidden_size, num_epochs, batch, learning_rate in hyperparameters:
+        torch.manual_seed(42)
+        np.random.seed(42)
+        torch.use_deterministic_algorithms(True)
+        train_loader=DataLoader(datasetTrain, batch_size=batch, shuffle=True,drop_last=True)
+        model = Feedforward(x_train.shape[1], hidden_size, datasetTrain.num_classes)
+        criterion = torch.nn.CrossEntropyLoss() #Softmax and NNLL, does not require one-hot encoding of labels
+        optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate,momentum=0.9)
 
-    model = Feedforward(x_train.shape[1], hidden_size, datasetTrain.num_classes)
-    criterion = torch.nn.CrossEntropyLoss() #Softmax and NNLL, does not require one-hot encoding of labels
-    optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
-
-    test_model(model,val_loader)
-    model, loss_values = train_model(model, criterion, optimizer, num_epochs, train_loader)
-    test_model(model, val_loader)
-    plt.clf()
-    plt.plot(loss_values)
-    plt.title("Number of epochs: {}".format(num_epochs))
-    plt.show()
+        test_model(model,val_loader)
+        model, loss_values = train_model(model, criterion, optimizer, num_epochs, train_loader)
+        test_model(model, val_loader)
+        plt.clf()
+        plt.plot(loss_values)
+        plt.title("Number of epochs: {}".format(num_epochs))
+        plt.show()
