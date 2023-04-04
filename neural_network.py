@@ -53,6 +53,7 @@ class MovieLens(Dataset):
 class Feedforward(torch.nn.Module):
     def __init__(self, input_size, hidden_size, num_classes):
         super(Feedforward, self).__init__()
+        self.device=torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         dropout = 0.2
         self.model = torch.nn.Sequential(
             #torch.nn.Dropout(dropout),
@@ -69,12 +70,12 @@ class Feedforward(torch.nn.Module):
     def forward(self, x):
         return self.model(x)
 
-def train_model(model, criterion, optimizer, epochs, data_loader):
+def train_model(model, criterion, optimizer, epochs, data_loader,device):
     model.train()
     loss_values = []
     for epoch in range(epochs):
         for data,targets in data_loader:
-
+            data, targets = data.to(device), targets.to(device)
             optimizer.zero_grad()
 
             # Forward pass 
@@ -91,34 +92,39 @@ def train_model(model, criterion, optimizer, epochs, data_loader):
 
     return model, loss_values
 
-def test_model(model, data_loader):
+def test_model(model, data_loader,best_accuracy,device,parameters,best_parameters):
     model.eval()
     y_pred = []
     y_test = []
     for data, targets in data_loader:
+        data, targets = data.to(device), targets.to(device)
         y_pred.append(model(data))
         y_test.append(targets)
-    y_pred = torch.stack(y_pred).squeeze()
-    y_test = torch.stack(y_test).squeeze()
-    y_pred = y_pred.argmax(dim=1, keepdim=True).squeeze()
+    y_pred = torch.stack(y_pred).squeeze().cpu()
+    y_test = torch.stack(y_test).squeeze().cpu()
+    y_pred = y_pred.argmax(dim=1, keepdim=True).squeeze().cpu()
     """score = torch.sum((y_pred.squeeze() == y_test).float()) / y_test.shape[0]
     print('Test score', score.numpy())"""
-    print(classification_report(y_test, y_pred,zero_division=0))
+    #print(classification_report(y_test, y_pred,zero_division=0))
     accuracy=accuracy_score(y_test, y_pred)
     print(accuracy)
+    if(accuracy>best_accuracy):
+        best_accuracy=accuracy
+        best_parameters=parameters
+    return best_accuracy,best_parameters
 
 if __name__ == "__main__":
-    
-    """hidden_sizes = [8, 16, 32]
-    nums_epochs = [10, 50, 100, 500]
-    batch_sizes = [8, 16, 32]
-    learning_rate = [0.01,0.001]"""
-    hidden_sizes = [32]
-    nums_epochs = [1]
-    batch_sizes = [16]
-    learning_rate = [0.001]
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    print("Device: {}".format(device))
 
-    hyperparameters = itertools.product(hidden_sizes, nums_epochs, batch_sizes,learning_rate)
+    best_accuracy=0
+    hidden_sizes = [16, 32,64]
+    nums_epochs = [10, 20]
+    batch = [16, 32,64]
+    learning_rate = [0.01,0.001]
+    parameters=[]
+    best_parameters=[]
+    hyperparameters = itertools.product(hidden_sizes, nums_epochs, batch,learning_rate)
 
     datasetTrain=MovieLens(x_train, y_train)
     datasetTest=MovieLens(x_test, y_test)
@@ -127,18 +133,31 @@ if __name__ == "__main__":
     val_loader=DataLoader(datasetVal, batch_size=1, shuffle=True)
     
     for hidden_size, num_epochs, batch, learning_rate in hyperparameters:
+        parameters.append(hidden_size)
+        parameters.append(num_epochs)
+        parameters.append(batch)
+        parameters.append(learning_rate)
+
         torch.manual_seed(42)
         np.random.seed(42)
-        torch.use_deterministic_algorithms(True)
+        #torch.use_deterministic_algorithms(True)
         train_loader=DataLoader(datasetTrain, batch_size=batch, shuffle=True,drop_last=True)
         model = Feedforward(x_train.shape[1], hidden_size, datasetTrain.num_classes)
+        model.to(device)
         criterion = torch.nn.CrossEntropyLoss() #Softmax and NNLL, does not require one-hot encoding of labels
         optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate,momentum=0.9)
 
-        test_model(model,val_loader)
-        model, loss_values = train_model(model, criterion, optimizer, num_epochs, train_loader)
-        test_model(model, val_loader)
+        #test_model(model,val_loader, device)
+        model, loss_values = train_model(model, criterion, optimizer, num_epochs, train_loader, device)
+        best_accuracy,best_parameters=test_model(model, val_loader,best_accuracy, device,parameters,best_parameters)
+        print("hiddensize: ",hidden_size,"num epochs: ",num_epochs,"batch: ",batch,"learning rate: ",learning_rate)
         plt.clf()
         plt.plot(loss_values)
         plt.title("Number of epochs: {}".format(num_epochs))
-        plt.show()
+        #plt.show()
+
+    print("Best accuracy: ",best_accuracy)
+    print("Best parameters: ",best_parameters)
+
+    #hiddensize:  16 num epochs:  20 batch:  64 learning rate:  0.01
+    #0.9493304379297864
