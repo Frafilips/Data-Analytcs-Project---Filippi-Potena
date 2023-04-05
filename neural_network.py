@@ -51,10 +51,10 @@ class MovieLens(Dataset):
 
 # Creazione del modello
 class Feedforward(torch.nn.Module):
-    def __init__(self, input_size, hidden_size, num_classes):
+    def __init__(self, input_size, hidden_size, num_classes,dropout):
         super(Feedforward, self).__init__()
         self.device=torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        dropout = 0.2
+        
         self.model = torch.nn.Sequential(
             torch.nn.Dropout(dropout),
             torch.nn.Linear(input_size, hidden_size),
@@ -140,8 +140,9 @@ if __name__ == "__main__":
     batch = [16, 32,64]
     learning_rate = [0.01,0.001]
     momentum=[0.9,0.95,0.99]
+    dropout=[0.2,0.3]
     best_parameters=[]
-    hyperparameters = itertools.product(hidden_sizes, nums_epochs, batch,learning_rate,momentum)
+    hyperparameters = itertools.product(hidden_sizes, nums_epochs, batch,learning_rate,momentum,dropout)
 
     datasetTrain=MovieLens(x_train, y_train)
     datasetTest=MovieLens(x_test, y_test)
@@ -150,26 +151,27 @@ if __name__ == "__main__":
     val_loader=DataLoader(datasetVal, batch_size=1, shuffle=True)
     test_loader=DataLoader(datasetTest, batch_size=1, shuffle=True)
     
-    for hidden_size, num_epochs, batch, learning_rate, momentum in hyperparameters:
+    for hidden_size, num_epochs, batch, learning_rate, momentum,dropout in hyperparameters:
         parameters=[]
         parameters.append(hidden_size)
         parameters.append(num_epochs)
         parameters.append(batch)
         parameters.append(learning_rate)
         parameters.append(momentum)
+        parameters.append(dropout)
 
         torch.manual_seed(42)
         np.random.seed(42)
         #torch.use_deterministic_algorithms(True)
         train_loader=DataLoader(datasetTrain, batch_size=batch, shuffle=True,drop_last=True)
-        model = Feedforward(x_train.shape[1], hidden_size, datasetTrain.num_classes)
+        model = Feedforward(x_train.shape[1], hidden_size, datasetTrain.num_classes,dropout)
         model.to(device)
         criterion = torch.nn.CrossEntropyLoss() #Softmax and NNLL, does not require one-hot encoding of labels
         optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate,momentum=momentum)
 
         #test_model(model,val_loader, device)
         model, loss_values = train_model(model, criterion, optimizer, num_epochs, train_loader, device)
-        print("Hiddensize: ",hidden_size,"; Num epochs: ",num_epochs,"; Batch: ",batch,"; Learning rate: ",learning_rate,"; Momentum: ",momentum)
+        print("Hiddensize: ",hidden_size,"; Num epochs: ",num_epochs,"; Batch: ",batch,"; Learning rate: ",learning_rate,"; Momentum: ",momentum,"; Dropout: ",dropout)
         best_accuracy,best_parameters=val_model(model, val_loader,best_accuracy, device,parameters,best_parameters)
         
         plt.clf()
@@ -184,9 +186,10 @@ if __name__ == "__main__":
     best_batch=best_parameters[2]
     best_learning_rate=best_parameters[3]
     best_momentum=best_parameters[4]
-    print("Best parameters: hidden_size:",best_hidden_size,"; num_epochs: ",best_num_epochs,"; batch: ",best_batch,"; learning_rate: ",best_learning_rate,": momentum: ",best_momentum)
+    best_dropout=best_parameters[5]
+    print("Best parameters: hidden_size:",best_hidden_size,"; num_epochs: ",best_num_epochs,"; batch: ",best_batch,"; learning_rate: ",best_learning_rate,": momentum: ",best_momentum,"; dropout: ",best_dropout)
     train_loader=DataLoader(datasetTrain, batch_size=best_batch, shuffle=True,drop_last=True)
-    model = Feedforward(x_train.shape[1], best_hidden_size, datasetTrain.num_classes)
+    model = Feedforward(x_train.shape[1], best_hidden_size, datasetTrain.num_classes,best_dropout)
     model.to(device)
     criterion = torch.nn.CrossEntropyLoss() #Softmax and NNLL, does not require one-hot encoding of labels
     optimizer = torch.optim.SGD(model.parameters(), lr=best_learning_rate,momentum=best_momentum)
@@ -204,10 +207,9 @@ if __name__ == "__main__":
 
     # Carica il modello salvato
     print("Carico il modello")
-    model = Feedforward(x_train.shape[1], best_hidden_size, datasetTrain.num_classes)
+    model = Feedforward(x_train.shape[1], best_hidden_size, datasetTrain.num_classes,best_dropout)
     model.to(device)
     model.load_state_dict(torch.load('nn_model.pt'))
-    
     
     # Utilizza il modello per fare predizioni sui tuoi dati di test
     test_model(model, test_loader, device)
