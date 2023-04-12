@@ -38,7 +38,6 @@ genome_tags = genome_tags.dropna()"""
 
 #one hot encoding sulla colonna dei genres per trasformare le stringhe in numeri in quanto feature qualitativa
 #in modo da effettuare più facilmente le analisi
-movies = data_acquisition.movies
 
 genres = movies["genres"].str.get_dummies()
 movies = movies.merge(genres, on="movieId")
@@ -98,11 +97,13 @@ binned_ratings = pd.cut(final_dataframe['rating'], bins, labels=bins[1:])
 label_encoder = LabelEncoder()
 label_encoder.fit(binned_ratings)
 binned_ratings = label_encoder.transform(binned_ratings)
+
 #Sostituizione nel dataframe della colonna rating con i valori binnati e trasformati
 final_dataframe['rating'] = binned_ratings
 
 #Drop della classe con 1 solo valore per problemi con utilizzo di SMOTE
 final_dataframe = final_dataframe[final_dataframe['rating'] != 0]
+
 binned_ratings = binned_ratings[binned_ratings != 0]
 #print(final_dataframe.groupby("rating").count())
 

@@ -14,6 +14,7 @@ import torch
 from torch.utils.data import Dataset, DataLoader, Subset
 import itertools
 
+
 df_x=data_pre_processing.df_x
 df_y=data_pre_processing.df_y
 
@@ -56,14 +57,14 @@ class Feedforward(torch.nn.Module):
         self.device=torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         
         self.model = torch.nn.Sequential(
-            torch.nn.Dropout(dropout),
             torch.nn.Linear(input_size, hidden_size),
-            torch.nn.ReLU(),
             torch.nn.BatchNorm1d(hidden_size),
+            torch.nn.ReLU(),
             torch.nn.Dropout(dropout),
             torch.nn.Linear(hidden_size, hidden_size),
-            torch.nn.ReLU(),
             torch.nn.BatchNorm1d(hidden_size),
+            torch.nn.ReLU(),
+            torch.nn.Dropout(dropout),
             torch.nn.Linear(hidden_size, num_classes),
         )
 
@@ -126,7 +127,11 @@ def test_model(model, data_loader,device):
     y_pred = y_pred.argmax(dim=1, keepdim=True).squeeze().cpu()
     score = torch.sum((y_pred.squeeze() == y_test).float()) / y_test.shape[0]
     #print('Test score', score.numpy())
+    print("Classification report")
     print(classification_report(y_test, y_pred,zero_division=0))
+    conf_matrix = confusion_matrix(y_test, y_pred)
+    print("Confusion matrix")
+    print(conf_matrix)
     accuracy=accuracy_score(y_test, y_pred)
     print("Accuracy: ",accuracy)
 
@@ -135,12 +140,12 @@ if __name__ == "__main__":
     print("Device: {}".format(device))
 
     best_accuracy=0
-    hidden_sizes = [16, 32,64]
-    nums_epochs = [10, 20,50]
-    batch = [16, 32,64]
+    hidden_sizes = [32,64]
+    nums_epochs = [20,50]
+    batch = [32,64]
     learning_rate = [0.01,0.001]
-    momentum=[0.9,0.95,0.99]
-    dropout=[0.2,0.3]
+    momentum=[0.9,0.95]
+    dropout=[0.1,0.05]
     best_parameters=[]
     hyperparameters = itertools.product(hidden_sizes, nums_epochs, batch,learning_rate,momentum,dropout)
 

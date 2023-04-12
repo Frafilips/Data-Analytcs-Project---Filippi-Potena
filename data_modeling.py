@@ -25,7 +25,7 @@ x_val = data_pre_processing.x_val
 y_val = data_pre_processing.y_val
 
 def naybeBayes():#Calcolo con classifier Naive Bayes
-
+    print("NAYVE@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
     #inizializzazione classificatore
     nb_classifier = GaussianNB()
     #addestro il classificatore
@@ -40,17 +40,15 @@ def naybeBayes():#Calcolo con classifier Naive Bayes
     y_test.reset_index(drop=True, inplace=True)
     df = pd.concat([predictionSeries, y_test],axis=1)
     df.columns = [ 'predicted rating', 'real rating' ]
-    print(df)
 
     # creazione della matrice di confusione
     conf_matrix = confusion_matrix(y_test, prediction)
-    print(accuracy_score(y_test,prediction))
+    print("Accuracy: ",accuracy_score(y_test,prediction))
     print(conf_matrix)
-    mse = mean_squared_error(y_test, prediction)
-    print('MSE:', mse)
 
 
 def decisionTree():#Calcolo con classifier Tree Based
+    print("DECISION TREE@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
     clf = DecisionTreeClassifier()
 
     # Definire i parametri da testare
@@ -70,9 +68,12 @@ def decisionTree():#Calcolo con classifier Tree Based
     # Visualizzare i risultati
     print('Migliori parametri:', grid_search.best_params_)
     print('Accuratezza:', accuracy)
+    conf_matrix = confusion_matrix(y_test, y_pred)
+    print(conf_matrix)
 
 
 def svc():#Calcolo con classifier SVM
+    print("SVC@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
     params = {'C': [0.1, 1, 10], 'kernel': ['linear', 'poly', 'rbf', 'sigmoid']}
 
     # Creare un oggetto SVM Classifier
@@ -93,16 +94,13 @@ def svc():#Calcolo con classifier SVM
     print("accuracy score: ",accuracy_score(y_test,prediction))
     print(conf_matrix)
 
-    mse = mean_squared_error(y_test, prediction)
-    r2 = r2_score(y_test, prediction)
-    print("Mean squared error:", mse)
-    print("Coefficient of determination:", r2)
     
 
 def knn():#Calcolo con classifier KNN
+    print("KNN@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
     mse_values = []
     best_k = None
-    best_mse = float('inf')
+    best_accuracy = float('inf')
     for k in range(1,11):
         knn = KNeighborsClassifier(n_neighbors=k)
         knn.fit(x_train,y_train)
@@ -110,15 +108,15 @@ def knn():#Calcolo con classifier KNN
         prediction = knn.predict(x_test)
 
         # calcolo del MSE
-        mse = mean_squared_error(y_test, prediction)
+        accuracy = accuracy_score(y_test, prediction)
 
         # confronto con il miglior valore di MSE finora
-        if mse < best_mse:
-            best_mse = mse
+        if accuracy < best_accuracy:
+            best_accuracy = accuracy
             best_k = k
 
     # stampa del risultato migliore
-    print("Il miglior valore di K è", best_k, "con un RMSE di", best_mse)
+    print("Il miglior valore di K è", best_k, "con un accuracy di", best_accuracy)
     best_knn = KNeighborsClassifier(n_neighbors=best_k)
     best_knn.fit(x_train,y_train)
     prediction = best_knn.predict(x_test)
@@ -129,8 +127,8 @@ def knn():#Calcolo con classifier KNN
 
 
 if __name__ == "__main__":
-    #naybeBayes()
+    naybeBayes()
     knn()
-    #decisionTree()
-    #svc()
+    decisionTree()
+    svc()
        
