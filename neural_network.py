@@ -135,6 +135,19 @@ def test_model(model, data_loader,device):
     accuracy=accuracy_score(y_test, y_pred)
     print("Accuracy: ",accuracy)
 
+    # Calcolo della curva ROC per ogni classe
+    fpr = dict()
+    tpr = dict()
+    roc_auc = dict()
+    for i in range(len(np.unique(y_test))):
+        
+        fpr[i], tpr[i], _ = roc_curve(y_test==i+1, y_pred==i+1)
+        roc_auc[i] = auc(fpr[i], tpr[i])
+
+    # Calcolo della media dei valori di AUC
+    mean_auc = np.mean(list(roc_auc.values()))
+    print("AUC mean: ",mean_auc)
+
 if __name__ == "__main__":
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print("Device: {}".format(device))

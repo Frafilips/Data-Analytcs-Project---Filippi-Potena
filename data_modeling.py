@@ -7,7 +7,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import GridSearchCV
 from sklearn.svm import SVC
-from sklearn.metrics import accuracy_score,confusion_matrix,mean_squared_error,r2_score
+from sklearn.metrics import accuracy_score,confusion_matrix,mean_squared_error,r2_score,roc_curve, auc
 import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
@@ -46,6 +46,19 @@ def naybeBayes():#Calcolo con classifier Naive Bayes
     print("Accuracy: ",accuracy_score(y_test,prediction))
     print(conf_matrix)
 
+    # Calcolo della curva ROC per ogni classe
+    fpr = dict()
+    tpr = dict()
+    roc_auc = dict()
+    for i in range(len(np.unique(y_test))):
+        
+        fpr[i], tpr[i], _ = roc_curve(y_test==i+1, prediction==i+1)
+        roc_auc[i] = auc(fpr[i], tpr[i])
+
+    # Calcolo della media dei valori di AUC
+    mean_auc = np.mean(list(roc_auc.values()))
+    print("AUC mean: ",mean_auc)
+
 
 def decisionTree():#Calcolo con classifier Tree Based
     print("DECISION TREE@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
@@ -71,6 +84,19 @@ def decisionTree():#Calcolo con classifier Tree Based
     conf_matrix = confusion_matrix(y_test, y_pred)
     print(conf_matrix)
 
+    # Calcolo della curva ROC per ogni classe
+    fpr = dict()
+    tpr = dict()
+    roc_auc = dict()
+    for i in range(len(np.unique(y_test))):
+        
+        fpr[i], tpr[i], _ = roc_curve(y_test==i+1, y_pred==i+1)
+        roc_auc[i] = auc(fpr[i], tpr[i])
+
+    # Calcolo della media dei valori di AUC
+    mean_auc = np.mean(list(roc_auc.values()))
+    print("AUC mean: ",mean_auc)
+
 
 def svc():#Calcolo con classifier SVM
     print("SVC@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
@@ -93,6 +119,19 @@ def svc():#Calcolo con classifier SVM
     conf_matrix = confusion_matrix(y_test, prediction)
     print("accuracy score: ",accuracy_score(y_test,prediction))
     print(conf_matrix)
+
+    # Calcolo della curva ROC per ogni classe
+    fpr = dict()
+    tpr = dict()
+    roc_auc = dict()
+    for i in range(len(np.unique(y_test))):
+        
+        fpr[i], tpr[i], _ = roc_curve(y_test==i+1, prediction==i+1)
+        roc_auc[i] = auc(fpr[i], tpr[i])
+
+    # Calcolo della media dei valori di AUC
+    mean_auc = np.mean(list(roc_auc.values()))
+    print("AUC mean: ",mean_auc)
 
     
 
@@ -124,11 +163,24 @@ def knn():#Calcolo con classifier KNN
     print("accuracy score: ",accuracy_score(y_test,prediction))
     print(conf_matrix)
 
+    # Calcolo della curva ROC per ogni classe
+    fpr = dict()
+    tpr = dict()
+    roc_auc = dict()
+    for i in range(len(np.unique(y_test))):
+        
+        fpr[i], tpr[i], _ = roc_curve(y_test==i+1, prediction==i+1)
+        roc_auc[i] = auc(fpr[i], tpr[i])
+
+    # Calcolo della media dei valori di AUC
+    mean_auc = np.mean(list(roc_auc.values()))
+    print("AUC mean: ",mean_auc)
 
 
 if __name__ == "__main__":
-    naybeBayes()
-    knn()
-    decisionTree()
+    #naybeBayes()
+    #decisionTree()
     svc()
+    #knn()
+    
        
