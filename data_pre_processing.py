@@ -19,22 +19,45 @@ tags = data_acquisition.tags
 genome_scores = data_acquisition.genome_scores
 genome_tags = data_acquisition.genome_tags
 
+#Visualizzazione rating tramite istogramma
+conteggio=ratings['rating'].value_counts().sort_index()
+rating=conteggio.index.array
+counts=conteggio.array
+fig, ax = plt.subplots()
+ax.bar(rating,counts,width=0.3)
+ax.ticklabel_format(axis='y', style='plain')
+plt.xticks(rating)
+plt.xlabel('Rating')
+plt.ylabel('Occurrencies')
+plt.title('Rating distribution')
+#plt.show()
 
-"""movies = movies.drop_duplicates()
+
+plt.clf()
+plt.boxplot(genome_scores["relevance"])
+#plt.show()
+
+"""print(genome_scores.relevance.max())
+print(genome_scores.relevance.min())"""
+
+
+"""#da eliminare perchè ci sono valori null
+tags = tags.drop_duplicates()
+tags = tags.dropna()"""
+
+#movies = movies.drop_duplicates()
 movies = movies.dropna()
 
+ratings.drop("timestamp",axis=1,inplace=True)
 ratings = ratings.drop_duplicates()
 ratings = ratings.dropna()
-
-#da eliminare perchè ci sono valori null
-tags = tags.drop_duplicates()
-tags = tags.dropna()
 
 genome_scores = genome_scores.drop_duplicates()
 genome_scores = genome_scores.dropna()
 
 genome_tags = genome_tags.drop_duplicates()
-genome_tags = genome_tags.dropna()"""
+genome_tags = genome_tags.dropna()
+
 
 #one hot encoding sulla colonna dei genres per trasformare le stringhe in numeri in quanto feature qualitativa
 #in modo da effettuare più facilmente le analisi
@@ -44,7 +67,7 @@ movies = movies.merge(genres, on="movieId")
 #vecchia colonna dei generi è stata trasformata in colonne binary, quindi non ci serve più
 #inplace altrimenti non la droppa, axis indica se index (0) o colonna (1)
 movies.drop("genres",axis=1,inplace=True)
-
+movies.drop("(no genres listed)",axis=1,inplace=True)
 #Aggiungiamo i genomi
 genome_scores = genome_scores.merge(genome_tags, on="tagId")
 
@@ -64,7 +87,6 @@ mean_ratings = ratings.groupby("movieId")["rating"].mean()
 final_dataframe = movies.merge(genome_scores, on="movieId")
 final_dataframe = final_dataframe.merge(mean_ratings, on="movieId")
 #cancellazione della colonna (no genres listed)
-final_dataframe = final_dataframe.drop('(no genres listed)', axis=1)
 
 #verifico integrità dei dati
 #controllo se ci sono NA
@@ -189,4 +211,4 @@ x_train, y_train = oversampler.fit_resample(x_train, y_train)
 plt.hist(label_encoder.inverse_transform(y_train.astype(int)), bins="auto")
 plt.xlabel("Rating Medio")
 plt.ylabel("Occorrenze")
-#plt.show()
+#plt.show()"
