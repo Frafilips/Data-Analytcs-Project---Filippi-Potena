@@ -7,7 +7,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import GridSearchCV
 from sklearn.svm import SVC
-from sklearn.metrics import accuracy_score,confusion_matrix,mean_squared_error,r2_score,classification_report
+from sklearn.metrics import accuracy_score,confusion_matrix,mean_squared_error,r2_score,classification_report,roc_curve, auc
 import warnings
 warnings.filterwarnings('always')
 import torch
@@ -135,6 +135,7 @@ def test_model(model, data_loader,device):
     accuracy=accuracy_score(y_test, y_pred)
     print("Accuracy: ",accuracy)
 
+    """
     # Calcolo della curva ROC per ogni classe
     fpr = dict()
     tpr = dict()
@@ -146,19 +147,20 @@ def test_model(model, data_loader,device):
 
     # Calcolo della media dei valori di AUC
     mean_auc = np.mean(list(roc_auc.values()))
-    print("AUC mean: ",mean_auc)
+    print("AUC mean: ",mean_auc)"""
 
 if __name__ == "__main__":
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print("Device: {}".format(device))
 
     best_accuracy=0
-    hidden_sizes = [32,64]
-    nums_epochs = [20,50]
-    batch = [32,64]
-    learning_rate = [0.01,0.001]
+    hidden_sizes = [32,64,128]
+    nums_epochs = [20,50,100,200]
+    batch = [16,32,64,128]
+    learning_rate = [0.01,0.005,0.001]
     momentum=[0.9,0.95]
-    dropout=[0.1,0.05]
+    dropout=[0.15,0.1,0.05,0.2]
+    
     best_parameters=[]
     hyperparameters = itertools.product(hidden_sizes, nums_epochs, batch,learning_rate,momentum,dropout)
 
@@ -213,12 +215,14 @@ if __name__ == "__main__":
     optimizer = torch.optim.SGD(model.parameters(), lr=best_learning_rate,momentum=best_momentum)
     model, loss_values = train_model(model, criterion, optimizer, best_num_epochs, train_loader, device)
 
+    #test 
     plt.clf()
     plt.plot(loss_values)
     plt.title("Number of epochs: {}".format(best_num_epochs))
     #plt.show()
     test_model(model, test_loader, device)
 
+    """
     #Salvataggio modello
     print("Salvataggio modello")
     torch.save(model.state_dict(), 'nn_model.pt')
@@ -230,4 +234,4 @@ if __name__ == "__main__":
     model.load_state_dict(torch.load('nn_model.pt'))
     
     # Utilizza il modello per fare predizioni sui tuoi dati di test
-    test_model(model, test_loader, device)
+    test_model(model, test_loader, device)"""

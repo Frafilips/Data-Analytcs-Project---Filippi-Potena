@@ -180,7 +180,7 @@ def knn():#Calcolo con classifier KNN
 if __name__ == "__main__":
     #naybeBayes()
     #decisionTree()
-    svc()
+    #svc()
     knn()
     
        

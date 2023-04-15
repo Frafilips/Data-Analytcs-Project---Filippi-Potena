@@ -6,7 +6,7 @@ import pandas as pd
 import data_acquisition as data_acquisition
 import matplotlib.pyplot as plt
 from imblearn.over_sampling import SMOTE
-from sklearn.preprocessing import LabelEncoder, Normalizer
+from sklearn.preprocessing import LabelEncoder, Normalizer, MinMaxScaler, StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.decomposition import PCA
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
@@ -67,7 +67,9 @@ movies = movies.merge(genres, on="movieId")
 #vecchia colonna dei generi è stata trasformata in colonne binary, quindi non ci serve più
 #inplace altrimenti non la droppa, axis indica se index (0) o colonna (1)
 movies.drop("genres",axis=1,inplace=True)
+#cancellazione della colonna (no genres listed)
 movies.drop("(no genres listed)",axis=1,inplace=True)
+
 #Aggiungiamo i genomi
 genome_scores = genome_scores.merge(genome_tags, on="tagId")
 
@@ -86,7 +88,7 @@ mean_ratings = ratings.groupby("movieId")["rating"].mean()
 #le informazioni sui genomes corrispondono solo a 13816 movies sui 62423, quando viene effettuata l'operazione di merge sul movieId vengono scartete le informazioni dei quasi 50000 mancanti
 final_dataframe = movies.merge(genome_scores, on="movieId")
 final_dataframe = final_dataframe.merge(mean_ratings, on="movieId")
-#cancellazione della colonna (no genres listed)
+
 
 #verifico integrità dei dati
 #controllo se ci sono NA
@@ -114,24 +116,22 @@ check_max = (df_description.loc[['max'], df_description.columns != "rating"] > 1
 
 bins = [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5]
 binned_ratings = pd.cut(final_dataframe['rating'], bins, labels=bins[1:])
-
 #Encoding dei rating classificati nei bin necessario per oversampling
 label_encoder = LabelEncoder()
 label_encoder.fit(binned_ratings)
 binned_ratings = label_encoder.transform(binned_ratings)
-
+#i valori di binned_rating vengono convertiti in int, riscalando i valori, ottenendo questa scala: [0 1 2 3 4 5 6 7]
+#questo si fa perchè non si possono addestrare modelli per un problema di classificazione con numeri continui
 #Sostituizione nel dataframe della colonna rating con i valori binnati e trasformati
 final_dataframe['rating'] = binned_ratings
-
 #Drop della classe con 1 solo valore per problemi con utilizzo di SMOTE
 final_dataframe = final_dataframe[final_dataframe['rating'] != 0]
-
 binned_ratings = binned_ratings[binned_ratings != 0]
-#print(final_dataframe.groupby("rating").count())
 
 #Funzioni di scaling possono essere calcolate sia prima sia dopo aver effettuato il resample perchè vanno calcolate per ogni sample(riga)
 #scaling data
 scaler = Normalizer(copy=False, norm='l2')
+# scaler = Normalizer(copy=False, norm='l1')
 # scaler = StandardScaler(copy=False)
 # scaler = MinMaxScaler(copy=False)
 
@@ -150,25 +150,21 @@ x_train, x_test, y_train, y_test = train_test_split(
     df_x, df_y, test_size = 0.2, random_state=42
 )
 
-
 x_train, x_val, y_train, y_val = train_test_split (
     x_train, y_train, test_size=0.25, random_state=42
 )
 
-
-
 #Eseguo riduzione delle dimensioni provando sia con il metodo PCA sia con il metodo LDA
 #PCA
-"""
-pca = PCA(0.8)
+
+"""pca = PCA(0.8)
 pca.fit(x_train)
-
-
+plt.clf()
 plt.plot(np.cumsum(pca.explained_variance_ratio_))
 plt.xlabel('Numero di componenti principali')
 plt.ylabel('Varianza spiegata cumulativa')
 plt.show()
-
+plt.clf()
 # traccia il grafico del gomito per selezionare il numero di componenti principali
 plt.plot(range(1, x_train.shape[1]+1), np.cumsum(pca.explained_variance_ratio_), '-o')
 plt.xlabel('Numero di componenti principali')
@@ -192,7 +188,7 @@ lda.fit(x_train, y_train)
 x_train = lda.transform(x_train)
 x_val = lda.transform(x_val)
 x_test = lda.transform(x_test)
-
+plt.clf()
 plt.scatter(x_train[:, 0], x_train[:, 1], c=y_train)
 #plt.show()
 plt.scatter(x_test[:, 0], x_test[:, 1], c=y_test)
@@ -211,4 +207,4 @@ x_train, y_train = oversampler.fit_resample(x_train, y_train)
 plt.hist(label_encoder.inverse_transform(y_train.astype(int)), bins="auto")
 plt.xlabel("Rating Medio")
 plt.ylabel("Occorrenze")
-#plt.show()"
+#plt.show()
