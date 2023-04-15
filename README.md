@@ -1,1 +1,3 @@
-# Data-Analytcs-Project---Filippi-Potena
+# Data-Analytics-Project---Filippi-Potena
+
+Project of the course Data Analytics
