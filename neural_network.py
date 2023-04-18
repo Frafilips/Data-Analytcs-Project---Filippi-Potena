@@ -112,6 +112,7 @@ def val_model(model, data_loader,best_accuracy,device,parameters,best_parameters
     if(accuracy>best_accuracy):
         best_accuracy=accuracy
         best_parameters=parameters
+
     return best_accuracy,best_parameters
 
 def test_model(model, data_loader,device):
@@ -135,31 +136,40 @@ def test_model(model, data_loader,device):
     accuracy=accuracy_score(y_test, y_pred)
     print("Accuracy: ",accuracy)
 
-    """
+    
     # Calcolo della curva ROC per ogni classe
     fpr = dict()
     tpr = dict()
     roc_auc = dict()
     for i in range(len(np.unique(y_test))):
         
-        fpr[i], tpr[i], _ = roc_curve(y_test==i+1, y_pred==i+1)
+        fpr[i], tpr[i], _ = roc_curve(y_test==i, y_pred==i)
+        
         roc_auc[i] = auc(fpr[i], tpr[i])
 
     # Calcolo della media dei valori di AUC
     mean_auc = np.mean(list(roc_auc.values()))
-    print("AUC mean: ",mean_auc)"""
+    print("AUC mean: ",mean_auc)
 
 if __name__ == "__main__":
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print("Device: {}".format(device))
 
     best_accuracy=0
-    hidden_sizes = [32,64,128]
-    nums_epochs = [20,50,100,200]
-    batch = [16,32,64,128]
-    learning_rate = [0.01,0.005,0.001]
+    """hidden_sizes = [64,128]
+    nums_epochs = [50,100]
+    batch = [16,32,64]
+    learning_rate = [0.01,0.001]
     momentum=[0.9,0.95]
-    dropout=[0.15,0.1,0.05,0.2]
+    dropout=[0.1,0.2]"""
+    #miglior parametri con LDA: hs:128;ne:100;b:64;lr:0.01;momentum=0.95;do:0.1; 
+    #miglior parametri con PCA: hs:128;ne:50;b:64;lr:0.01;momentum=0.95;do:0.2; 
+    hidden_sizes = [128]
+    nums_epochs = [100]
+    batch = [64]
+    learning_rate = [0.01]
+    momentum=[0.95]
+    dropout=[0.1]
     
     best_parameters=[]
     hyperparameters = itertools.product(hidden_sizes, nums_epochs, batch,learning_rate,momentum,dropout)
@@ -197,7 +207,9 @@ if __name__ == "__main__":
         plt.clf()
         plt.plot(loss_values)
         plt.title("Number of epochs: {}".format(num_epochs))
-        #plt.show()
+        plt.xlabel('Iterations')
+        plt.ylabel('Loss')
+        plt.show()
 
     print("Best accuracy: ",best_accuracy)
     #Training with best parameters and testing the model

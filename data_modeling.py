@@ -7,7 +7,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import GridSearchCV
 from sklearn.svm import SVC
-from sklearn.metrics import accuracy_score,confusion_matrix,mean_squared_error,r2_score,roc_curve, auc
+from sklearn.metrics import accuracy_score,confusion_matrix,mean_squared_error,r2_score,roc_curve, auc,classification_report
 import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
@@ -43,6 +43,7 @@ def naybeBayes():#Calcolo con classifier Naive Bayes
 
     # creazione della matrice di confusione
     conf_matrix = confusion_matrix(y_test, prediction)
+    print("Classification report: ",classification_report(y_test, prediction,zero_division=0))
     print("Accuracy: ",accuracy_score(y_test,prediction))
     print(conf_matrix)
 
@@ -81,6 +82,7 @@ def decisionTree():#Calcolo con classifier Tree Based
     # Visualizzare i risultati
     print('Migliori parametri:', grid_search.best_params_)
     print('Accuratezza:', accuracy)
+    print("Classification report: ",classification_report(y_test, y_pred,zero_division=0))
     conf_matrix = confusion_matrix(y_test, y_pred)
     print(conf_matrix)
 
@@ -117,6 +119,7 @@ def svc():#Calcolo con classifier SVM
     best_svc.fit(x_train, y_train)
     prediction = best_svc.predict(x_test)
     conf_matrix = confusion_matrix(y_test, prediction)
+    print("Classification report: ",classification_report(y_test, prediction,zero_division=0))
     print("accuracy score: ",accuracy_score(y_test,prediction))
     print(conf_matrix)
 
@@ -140,14 +143,13 @@ def knn():#Calcolo con classifier KNN
     mse_values = []
     best_k = None
     best_accuracy = float('inf')
-    for k in range(1,11):
+    for k in range(1,40):
         knn = KNeighborsClassifier(n_neighbors=k)
         knn.fit(x_train,y_train)
 
-        prediction = knn.predict(x_test)
+        prediction = knn.predict(x_val)
 
-        # calcolo del MSE
-        accuracy = accuracy_score(y_test, prediction)
+        accuracy = accuracy_score(y_val, prediction)
 
         # confronto con il miglior valore di MSE finora
         if accuracy < best_accuracy:
@@ -160,6 +162,7 @@ def knn():#Calcolo con classifier KNN
     best_knn.fit(x_train,y_train)
     prediction = best_knn.predict(x_test)
     conf_matrix = confusion_matrix(y_test, prediction)
+    print("Classification report: ",classification_report(y_test, prediction,zero_division=0))
     print("accuracy score: ",accuracy_score(y_test,prediction))
     print(conf_matrix)
 
@@ -178,9 +181,7 @@ def knn():#Calcolo con classifier KNN
 
 
 if __name__ == "__main__":
-    #naybeBayes()
-    #decisionTree()
-    #svc()
+    naybeBayes()
+    decisionTree()
+    svc()
     knn()
-    
-       

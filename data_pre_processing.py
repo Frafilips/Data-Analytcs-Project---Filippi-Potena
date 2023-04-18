@@ -155,11 +155,16 @@ x_train, x_val, y_train, y_val = train_test_split (
 )
 
 #Eseguo riduzione delle dimensioni provando sia con il metodo PCA sia con il metodo LDA
-#PCA
 
+#PCA
 """pca = PCA(0.8)
 pca.fit(x_train)
-plt.clf()
+x_train = pca.transform(x_train)
+x_val = pca.transform(x_val)
+x_test = pca.transform(x_test)"""
+
+
+"""plt.clf()
 plt.plot(np.cumsum(pca.explained_variance_ratio_))
 plt.xlabel('Numero di componenti principali')
 plt.ylabel('Varianza spiegata cumulativa')
@@ -170,10 +175,6 @@ plt.plot(range(1, x_train.shape[1]+1), np.cumsum(pca.explained_variance_ratio_),
 plt.xlabel('Numero di componenti principali')
 plt.ylabel('Varianza spiegata cumulativa')
 plt.show()
-
-x_train = pca.transform(x_train)
-x_val = pca.transform(x_val)
-x_test = pca.transform(x_test)
 
 plt.scatter(x_train[:, 0], x_train[:, 1], c=y_train)
 plt.show()
@@ -188,7 +189,9 @@ lda.fit(x_train, y_train)
 x_train = lda.transform(x_train)
 x_val = lda.transform(x_val)
 x_test = lda.transform(x_test)
-plt.clf()
+
+
+"""plt.clf()
 plt.scatter(x_train[:, 0], x_train[:, 1], c=y_train)
 #plt.show()
 plt.scatter(x_test[:, 0], x_test[:, 1], c=y_test)
@@ -198,13 +201,13 @@ plt.scatter(x_test[:, 0], x_test[:, 1], c=y_test)
 plt.hist(label_encoder.inverse_transform(y_train.astype(int)), bins="auto")
 plt.xlabel("Rating Medio")
 plt.ylabel("Occorrenze")
-#plt.show()
+#plt.show()"""
 
 #Bilanciamento delle classi tramite oversampling
 oversampler = SMOTE(k_neighbors = 6)
 x_train, y_train = oversampler.fit_resample(x_train, y_train)
 
-plt.hist(label_encoder.inverse_transform(y_train.astype(int)), bins="auto")
+"""plt.hist(label_encoder.inverse_transform(y_train.astype(int)), bins="auto")
 plt.xlabel("Rating Medio")
 plt.ylabel("Occorrenze")
-#plt.show()
+#plt.show()"""
