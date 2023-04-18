@@ -23,19 +23,17 @@ genome_tags = data_acquisition.genome_tags
 conteggio=ratings['rating'].value_counts().sort_index()
 rating=conteggio.index.array
 counts=conteggio.array
-fig, ax = plt.subplots()
+"""fig, ax = plt.subplots()
 ax.bar(rating,counts,width=0.3)
 ax.ticklabel_format(axis='y', style='plain')
 plt.xticks(rating)
 plt.xlabel('Rating')
 plt.ylabel('Occurrencies')
 plt.title('Rating distribution')
-#plt.show()
+plt.show()"""
 
-
-plt.clf()
-plt.boxplot(genome_scores["relevance"])
-#plt.show()
+"""plt.boxplot(genome_scores["relevance"])
+plt.show()"""
 
 """print(genome_scores.relevance.max())
 print(genome_scores.relevance.min())"""

@@ -142,7 +142,8 @@ def knn():#Calcolo con classifier KNN
     print("KNN@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
     mse_values = []
     best_k = None
-    best_accuracy = float('inf')
+    best_accuracy = 0
+    error_rate=[]
     for k in range(1,40):
         knn = KNeighborsClassifier(n_neighbors=k)
         knn.fit(x_train,y_train)
@@ -151,10 +152,21 @@ def knn():#Calcolo con classifier KNN
 
         accuracy = accuracy_score(y_val, prediction)
 
-        # confronto con il miglior valore di MSE finora
-        if accuracy < best_accuracy:
+        # confronto con il miglior valore di accuracy finora
+        if accuracy > best_accuracy:
             best_accuracy = accuracy
             best_k = k
+        
+        error_rate.append(np.mean(prediction!=y_val))
+
+    plt.figure(figsize=(12,6))
+    plt.plot(range(1,40),error_rate,marker="o",markerfacecolor="green",
+        linestyle="dashed",color="red",markersize=15)
+    plt.title("Error rate vs k value",fontsize=20)
+    plt.xlabel("k- values",fontsize=20)
+    plt.ylabel("error rate",fontsize=20)
+    plt.xticks(range(1,40))
+    plt.show()
 
     # stampa del risultato migliore
     print("Il miglior valore di K è", best_k, "con un accuracy di", best_accuracy)
@@ -181,7 +193,7 @@ def knn():#Calcolo con classifier KNN
 
 
 if __name__ == "__main__":
-    naybeBayes()
-    decisionTree()
-    svc()
+    #naybeBayes()
+    #decisionTree()
+    #svc()
     knn()
