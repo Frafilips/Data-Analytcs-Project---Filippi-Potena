@@ -25,23 +25,15 @@ x_val = data_pre_processing.x_val
 y_val = data_pre_processing.y_val
 
 def naybeBayes():#Calcolo con classifier Naive Bayes
-    print("NAYVE@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+    print("--------------------Nayve Bayes--------------------")
     #inizializzazione classificatore
     nb_classifier = GaussianNB()
     #addestro il classificatore
     nb_classifier.fit(x_train,y_train)
     #effettuo prediction
     prediction = nb_classifier.predict(x_test)
-    #differenze from y_test e prediction
-    #print(y_test.value_counts())
-    predictionSeries = pd.Series(prediction)
-    #print(predictionSeries.value_counts())
-    predictionSeries.reset_index(drop=True, inplace=True)
-    y_test.reset_index(drop=True, inplace=True)
-    df = pd.concat([predictionSeries, y_test],axis=1)
-    df.columns = [ 'predicted rating', 'real rating' ]
 
-    # creazione della matrice di confusione
+    # creazione della matrice di confusione, accuracy score e classification report
     conf_matrix = confusion_matrix(y_test, prediction)
     print("Classification report: ",classification_report(y_test, prediction,zero_division=0))
     print("Accuracy: ",accuracy_score(y_test,prediction))
@@ -62,7 +54,7 @@ def naybeBayes():#Calcolo con classifier Naive Bayes
 
 
 def decisionTree():#Calcolo con classifier Tree Based
-    print("DECISION TREE@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+    print("--------------------Decision Tree--------------------")
     clf = DecisionTreeClassifier()
 
     # Definire i parametri da testare
@@ -101,7 +93,7 @@ def decisionTree():#Calcolo con classifier Tree Based
 
 
 def svc():#Calcolo con classifier SVM
-    print("SVC@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+    print("--------------------SVC--------------------")
     params = {'C': [0.1, 1, 10], 'kernel': ['linear', 'poly', 'rbf', 'sigmoid']}
 
     # Creare un oggetto SVM Classifier
@@ -139,7 +131,7 @@ def svc():#Calcolo con classifier SVM
     
 
 def knn():#Calcolo con classifier KNN
-    print("KNN@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+    print("--------------------KNN--------------------")
     mse_values = []
     best_k = None
     best_accuracy = 0
@@ -159,14 +151,14 @@ def knn():#Calcolo con classifier KNN
         
         error_rate.append(np.mean(prediction!=y_val))
 
-    plt.figure(figsize=(12,6))
+    """plt.figure(figsize=(12,6))
     plt.plot(range(1,40),error_rate,marker="o",markerfacecolor="green",
         linestyle="dashed",color="red",markersize=15)
     plt.title("Error rate vs k value",fontsize=20)
     plt.xlabel("k- values",fontsize=20)
     plt.ylabel("error rate",fontsize=20)
     plt.xticks(range(1,40))
-    plt.show()
+    plt.show()"""
 
     # stampa del risultato migliore
     print("Il miglior valore di K è", best_k, "con un accuracy di", best_accuracy)
@@ -193,7 +185,7 @@ def knn():#Calcolo con classifier KNN
 
 
 if __name__ == "__main__":
-    #naybeBayes()
-    #decisionTree()
-    #svc()
+    naybeBayes()
+    decisionTree()
+    svc()
     knn()

@@ -9,8 +9,7 @@ __CSV_FOLDER = '../ml-25m'
 #Leggo dai file CSV i dati e creo un DataFrame per ogni file
 movies = pd.read_csv(__CSV_FOLDER+"/movies.csv", index_col="movieId", usecols=["movieId","genres"])
 ratings = pd.read_csv(__CSV_FOLDER+"/ratings.csv")
-tags = pd.read_csv(__CSV_FOLDER+"/tags.csv")
 genome_scores = pd.read_csv(__CSV_FOLDER+"/genome-scores.csv")
 genome_tags = pd.read_csv(__CSV_FOLDER+"/genome-tags.csv")
 
-#ignoriamo il file links perchè inutile ai fini della nostra analisi
+#Ignoriamo i file links e tags perchè inutili ai fini della nostra analisi

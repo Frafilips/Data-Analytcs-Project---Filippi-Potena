@@ -14,7 +14,6 @@ import torch
 from torch.utils.data import Dataset, DataLoader, Subset
 import itertools
 
-
 df_x=data_pre_processing.df_x
 df_y=data_pre_processing.df_y
 
@@ -47,8 +46,6 @@ class MovieLens(Dataset):
 
     def __getitem__(self, idx):
         return self.X[idx, :], self.y[idx]
-
-
 
 # Creazione del modello
 class Feedforward(torch.nn.Module):
@@ -136,7 +133,6 @@ def test_model(model, data_loader,device):
     accuracy=accuracy_score(y_test, y_pred)
     print("Accuracy: ",accuracy)
 
-    
     # Calcolo della curva ROC per ogni classe
     fpr = dict()
     tpr = dict()
@@ -227,7 +223,7 @@ if __name__ == "__main__":
     optimizer = torch.optim.SGD(model.parameters(), lr=best_learning_rate,momentum=best_momentum)
     model, loss_values = train_model(model, criterion, optimizer, best_num_epochs, train_loader, device)
 
-    #test 
+    #test con i migliori iperparametri 
     plt.clf()
     plt.plot(loss_values)
     plt.title("Number of epochs: {}".format(best_num_epochs))
