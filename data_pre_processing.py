@@ -95,7 +95,6 @@ check_max = (df_description.loc[['max'], df_description.columns != "rating"] > 1
 #print("Numero di valori minori di 0 delle colonne: ", check_min)
 #print("Numero di valori maggiori di 1 delle colonne : ", check_max)
 
-
 #Binning dei rating da 0 a 5 a step di 0.5 come indicato dal readme del dataset 
 # in cui le votazioni sono date da 0 a 5 in step di 0.5
 bins = [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5]
@@ -140,7 +139,6 @@ x_train, x_val, y_train, y_val = train_test_split (
 
 #Eseguo riduzione delle dimensioni provando sia con il metodo PCA sia con il metodo LDA
 #PCA
-
 """pca = PCA(0.8)
 pca.fit(x_train)
 x_train = pca.transform(x_train)
@@ -153,11 +151,10 @@ plt.plot(np.cumsum(pca.explained_variance_ratio_))
 plt.xlabel('Numero di componenti principali')
 plt.ylabel('Varianza spiegata cumulativa')
 plt.show()
-plt.clf()
+plt.clf()"""
 
-plt.scatter(x_train[:, 0], x_train[:, 1], c=y_train)
+"""plt.scatter(x_train[:, 0], x_train[:, 1], c=y_train)
 plt.show()"""
-
 
 #LDA
 lda = LinearDiscriminantAnalysis()
@@ -166,7 +163,6 @@ lda.fit(x_train, y_train)
 x_train = lda.transform(x_train)
 x_val = lda.transform(x_val)
 x_test = lda.transform(x_test)
-
 
 """plt.clf()
 plt.scatter(x_train[:, 0], x_train[:, 1], c=y_train)
